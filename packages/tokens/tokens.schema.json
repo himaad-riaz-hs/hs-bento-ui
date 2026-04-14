@@ -1,0 +1,12 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "HS-Bento CSS variable snapshot",
+  "type": "object",
+  "required": ["tokens"],
+  "properties": {
+    "tokens": {
+      "type": "object",
+      "additionalProperties": { "type": "string" }
+    }
+  }
+}

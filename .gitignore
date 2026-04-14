@@ -1,0 +1,22 @@
+# Dependencies
+node_modules/
+
+# Build outputs
+dist/
+storybook-static/
+
+# Logs & caches
+*.log
+npm-debug.log*
+.DS_Store
+.turbo
+.cache
+
+# Editor
+.idea/
+.vscode/*
+!.vscode/extensions.json
+
+# Env (if added later)
+.env
+.env.*

@@ -1,0 +1,41 @@
+import { Meta } from "@storybook/blocks";
+
+<Meta title="Design System/Tokens" />
+
+# HS-Bento tokens
+
+## CSS source of truth
+
+All design tokens live in **`src/tokens/index.css`** under `:root`. They map to the HS-Bento / Figma gallery (fills, strokes, component aliases, typography scale, elevation, focus ring).
+
+Build the published stylesheet with:
+
+```bash
+npm run build:css
+```
+
+## JSON snapshot (tooling)
+
+Run:
+
+```bash
+npm run build:tokens
+```
+
+This writes **`packages/tokens/tokens.json`** — a flat map of variable names to resolved values (strings), useful for Figma plugins, custom linters, or documentation generators.
+
+## Tailwind
+
+**`tailwind.config.ts`** mirrors tokens as `hs.*` colors, spacing (`hs-1` …), radii (`rounded-hs-2`), typography (`text-hs-base-medium`, `text-hs-label-medium`, …), and shadows (`shadow-hs-menu`). Prefer these utilities over duplicating `var(--hs-…)` in new UI.
+
+## Primitive class fragments
+
+**`src/lib/hs-primitive-classes.ts`** exports **`hsPrimitive`** — small composed class strings for form labels, field text, menu rows, and popovers. Use with **`cn()`** so labels and inputs stay aligned with the type scale.
+
+## Token guardrails (lint)
+
+**`npm run lint`** runs TypeScript and **`scripts/check-design-tokens.mjs`**. That script fails if **raw hex** or **functional `rgb` / `rgba` / `hsl` / `hsla`** appear in **`src/**/*.ts` and `src/**/*.tsx`**, excluding the **`src/tokens`** folder (where `index.css` is the single source for literals). Stories and features are included — use **`var(--hs-…)`** or Tailwind **`hs.*`** utilities instead.
+
+## Components
+
+Import primitives from the package entry; styles are included via **`hs-bento-ui/styles.css`** (or the same file from `dist` after build).

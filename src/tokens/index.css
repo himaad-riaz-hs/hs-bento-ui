@@ -1,0 +1,381 @@
+@import url('https://fonts.googleapis.com/css2?family=Source+Sans+3:ital,wght@0,400;0,600;0,700;1,400;1,600;1,700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* ─── Typeface ─── */
+    --hs-typeface-base-font-family: 'Source Sans 3', 'Source Sans Pro', sans-serif;
+    --hs-typeface-strong-font-family: 'Source Sans 3', 'Source Sans Pro', sans-serif;
+    --hs-typeface-button-font-family: 'Source Sans 3', 'Source Sans Pro', sans-serif;
+    --hs-typeface-label-font-family: 'Source Sans 3', 'Source Sans Pro', sans-serif;
+    --hs-typeface-title-font-family: 'Source Sans 3', 'Source Sans Pro', sans-serif;
+    --hs-typeface-body-font-family: 'Source Sans 3', 'Source Sans Pro', sans-serif;
+
+    /* ─── Color Tokens: Fill ─── */
+    --hs-color-fill-app: #fdfdfd;
+    --hs-color-fill-base: #fdfdfd;
+    --hs-color-fill-subtle: #f9f9f9;
+    --hs-color-fill-inverse: #333;
+    --hs-color-fill-disabled: #eef1f2;
+    --hs-color-fill-brand: #012b3a;
+    --hs-color-fill-brand-hover: #01384d;
+    --hs-color-fill-brand-active: #001e29;
+    --hs-color-fill-positive: #177a4d;
+    --hs-color-fill-critical: #c9372c;
+    --hs-color-fill-warning: #e2b203;
+    --hs-color-fill-info: #0065b3;
+    --hs-color-fill-discovery: #6554c0;
+
+    /* ─── Color Tokens: Text ─── */
+    --hs-color-text-base: #1c1c1c;
+    --hs-color-text-subtle: #5c5c5c;
+    --hs-color-text-muted: #767676;
+    --hs-color-text-inverse: #fdfdfd;
+    --hs-color-text-disabled: #a1a1a1;
+    --hs-color-text-link: #2f6b9a;
+    --hs-color-text-link-hover: #143059;
+    --hs-color-text-brand: #143059;
+    --hs-color-text-positive: #177a4d;
+    --hs-color-text-critical: #c9372c;
+    --hs-color-text-warning: #b59105;
+    --hs-color-text-info: #0065b3;
+    --hs-color-text-discovery: #6554c0;
+    --hs-color-text-body: #241f21;
+    --hs-color-text-timestamps: #504c4d;
+
+    /* ─── Color Tokens: Icon ─── */
+    --hs-color-icon-base: #1c1c1c;
+    --hs-color-icon-subtle: #5c5c5c;
+    --hs-color-icon-inverse: #fdfdfd;
+    --hs-color-icon-disabled: #a1a1a1;
+    --hs-color-icon-link: #2f6b9a;
+    --hs-color-icon-brand: #143059;
+    --hs-color-icon-positive: #177a4d;
+    --hs-color-icon-critical: #c9372c;
+    --hs-color-icon-warning: #b59105;
+    --hs-color-icon-info: #0065b3;
+    --hs-color-icon-discovery: #6554c0;
+
+    /* ─── Color Tokens: Border ─── */
+    --hs-color-border-base: #767676;
+    --hs-color-border-subtle: #ebebeb;
+    --hs-color-border-strong: #5c5c5c;
+    --hs-color-border-neutral: #767676;
+    --hs-color-border-disabled: #ebebeb;
+    /** Matches Figma `hs/global/color/border/focus` — bright focus blue (not Secondary Blue) */
+    --hs-color-border-focus: #0065ff;
+    --hs-color-border-selected: #143059;
+    --hs-color-border-negative: #c9372c;
+    --hs-color-border-discovery: #6554c0;
+    --hs-color-border-drag: #2f6b9a;
+    --hs-color-border-brand: #143059;
+    --hs-color-border-positive: #177a4d;
+    --hs-color-border-critical: #c9372c;
+    --hs-color-border-warning: #b59105;
+    --hs-color-border-info: #0065b3;
+
+    /* ─── Color Tokens: Chart ─── */
+    --hs-color-chart-neutral-base: #5c5c5c;
+    --hs-color-chart-neutral-shade: #767676;
+    --hs-color-chart-positive-base: #177a4d;
+    --hs-color-chart-positive-shade: #7dd3b0;
+    --hs-color-chart-critical-base: #c9372c;
+    --hs-color-chart-critical-shade: #f5a7a2;
+
+    /* ─── Palette: Primary ─── */
+    --hs-palette-primary: #143059;
+    --hs-palette-secondary-blue: #2f6b9a;
+    --hs-palette-complementary-orange-20: #fde2d3;
+    --hs-palette-neutrals-light-10: #fcfcfb;
+    --hs-palette-border-input: #7c797a;
+
+    /* Tag color swatches (picker + demos — change once, updates everywhere) */
+    --hs-palette-tag-blue: #4c9aff;
+    --hs-palette-tag-green: #57d9a3;
+    --hs-palette-tag-purple: #b8acf6;
+    --hs-palette-tag-yellow: #ffc400;
+    --hs-palette-tag-pink: #ff8f73;
+
+    /* ─── Component: Button (HS-Bento / Figma gallery — single default size, hs-sys/text/button-small) ─── */
+    --hs-comp-button-filled-bg: #012b3a;
+    --hs-comp-button-filled-bg-hover: #01384d;
+    --hs-comp-button-filled-bg-active: #001e29;
+    --hs-comp-button-filled-text: #fdfdfd;
+    /** Text on filled brand / primary surfaces — alias to filled button label (Bento) */
+    --hs-color-text-on-filled: var(--hs-comp-button-filled-text);
+    /* Figma variable aliases (same values; names match design tooling) */
+    --hs-comp-button-primary-color-fill: var(--hs-comp-button-filled-bg);
+    --hs-comp-button-primary-color-text: var(--hs-comp-button-filled-text);
+    --hs-comp-button-outlined-bg: transparent;
+    --hs-comp-button-outlined-bg-hover: rgba(1, 43, 58, 0.06);
+    --hs-comp-button-outlined-border: #1c1c1c;
+    --hs-comp-button-outlined-text: #1c1c1c;
+    --hs-comp-button-outlined-color-border: var(--hs-comp-button-outlined-border);
+    --hs-comp-button-outlined-color-fill: rgba(253, 253, 253, 0);
+    --hs-comp-button-outlined-color-text: var(--hs-comp-button-outlined-text);
+    --hs-comp-button-text-bg: transparent;
+    --hs-comp-button-text-bg-hover: rgba(28, 28, 28, 0.06);
+    --hs-comp-button-text-label: #1c1c1c;
+    --hs-comp-button-tonal-bg: #f2f4f6;
+    --hs-comp-button-tonal-bg-hover: #e8ecef;
+    --hs-comp-button-tonal-text: #1c1c1c;
+    --hs-comp-button-ghost-text: #1c1c1c;
+    --hs-comp-button-ghost-color-fill: rgba(253, 253, 253, 0);
+    --hs-comp-button-ghost-color-text: var(--hs-comp-button-ghost-text);
+    /* Secondary / tonal surface — gallery “secondary” chip */
+    --hs-comp-button-secondary-fill: #f2f4f6;
+    --hs-comp-button-secondary-color-fill: var(--hs-comp-button-secondary-fill);
+    --hs-comp-button-secondary-color-text: #1c1c1c;
+    /* Overlay buttons (media, dark chrome) — comp-button-overlay */
+    --hs-comp-button-overlay-filled-bg: #6b6b6b;
+    --hs-comp-button-overlay-filled-bg-hover: #5c5c5c;
+    --hs-comp-button-overlay-filled-text: #fdfdfd;
+    --hs-comp-button-overlay-filled-inverse-bg: #fdfdfd;
+    --hs-comp-button-overlay-filled-inverse-bg-hover: #f4f5f6;
+    --hs-comp-button-overlay-filled-inverse-text: #1c1c1c;
+    --hs-comp-button-overlay-ghost-text: #fdfdfd;
+    --hs-comp-button-overlay-ghost-hover: rgba(253, 253, 253, 0.12);
+    --hs-comp-button-overlay-ghost-inverse-text: #1c1c1c;
+    --hs-comp-button-overlay-ghost-inverse-hover: rgba(28, 28, 28, 0.06);
+    --hs-comp-button-border-radii: 8px;
+    --hs-comp-icon-button-border-radii: 50px;
+    --hs-comp-icon-button-spacing-medium: 12px;
+
+    /* ─── Component: Input ─── */
+    --hs-comp-input-bg: #fdfdfd;
+    --hs-comp-input-border: #767676;
+    --hs-comp-input-border-hover: #5c5c5c;
+    --hs-comp-input-border-focus: var(--hs-color-border-focus);
+    --hs-comp-input-border-error: #c9372c;
+    --hs-comp-input-border-radii: 8px;
+    --hs-comp-input-text: #1c1c1c;
+    --hs-comp-input-placeholder: #5c5c5c;
+    --hs-comp-input-label: #1c1c1c;
+    --hs-comp-input-helper: #5c5c5c;
+
+    /* ─── Component: Tab ─── */
+    --hs-comp-tab-selected-text: #1c1c1c;
+
+    /* ─── Component: Tag ─── */
+    --hs-comp-tag-bg: #fde2d3;
+    --hs-comp-tag-text: #143059;
+    --hs-comp-tag-surface-positive: rgba(23, 122, 77, 0.12);
+    --hs-comp-tag-surface-critical: rgba(201, 55, 44, 0.12);
+    --hs-comp-tag-surface-warning: rgba(226, 178, 3, 0.15);
+    --hs-comp-tag-surface-info: rgba(0, 101, 179, 0.12);
+    --hs-comp-tag-surface-discovery: rgba(101, 84, 192, 0.12);
+
+    /* ─── Component: Dropdown ─── */
+    --hs-comp-dropdown-inline-text: #1c1c1c;
+
+    /* ─── Component: Badge (gallery) ─── */
+    --hs-comp-badge-neutral-bg: #f4f5f6;
+    --hs-comp-badge-neutral-text: #1c1c1c;
+    --hs-comp-badge-overlay-bg: #333;
+    --hs-comp-badge-overlay-text: #fdfdfd;
+    --hs-comp-badge-positive-bg: #dcfff1;
+    --hs-comp-badge-positive-text: #177a4d;
+    --hs-comp-badge-warning-bg: #fef3cd;
+    --hs-comp-badge-warning-text: #b59105;
+    --hs-comp-badge-negative-bg: #ffeae6;
+    --hs-comp-badge-negative-text: #c9372c;
+    --hs-comp-badge-discovery-bg: #eae6ff;
+    --hs-comp-badge-discovery-text: #6554c0;
+    --hs-comp-badge-brand-bg: #012b3a;
+    --hs-comp-badge-brand-text: #fdfdfd;
+
+    /* ─── Component: Alert ─── */
+    --hs-comp-alert-info-bg: #e9f0fc;
+    --hs-comp-alert-info-icon: #0052cc;
+    --hs-comp-alert-positive-bg: #dcfff1;
+    --hs-comp-alert-positive-icon: #177a4d;
+    --hs-comp-alert-warning-bg: #fef3cd;
+    --hs-comp-alert-warning-icon: #b59105;
+    --hs-comp-alert-critical-bg: #ffeae6;
+    --hs-comp-alert-critical-icon: #c9372c;
+    --hs-comp-alert-discovery-bg: #eae6ff;
+    --hs-comp-alert-discovery-icon: #6554c0;
+
+    /* Info-tint surfaces (tag admin bulk bar, etc.) */
+    --hs-comp-surface-info-tint-start: #eef5fb;
+    --hs-comp-surface-info-tint-end: #e9f0fc;
+    --hs-comp-surface-info-tint-border: #c4d9e2;
+
+    /* ─── Component: Tooltip ─── */
+    --hs-comp-tooltip-bg: var(--hs-color-fill-inverse);
+    --hs-comp-tooltip-text: var(--hs-color-text-inverse);
+
+    /* ─── Component: Chip filter ─── */
+    --hs-comp-chip-filter-border: var(--hs-color-border-base);
+    --hs-comp-chip-filter-bg: var(--hs-color-fill-app);
+    --hs-comp-chip-filter-bg-selected: var(--hs-comp-button-filled-bg);
+    --hs-comp-chip-filter-text: var(--hs-color-text-base);
+    --hs-comp-chip-filter-text-selected: var(--hs-comp-button-filled-text);
+
+    /* ─── Component: Toggle group ─── */
+    --hs-comp-toggle-group-border: var(--hs-color-border-base);
+    --hs-comp-toggle-group-bg-selected: var(--hs-comp-button-tonal-bg);
+
+    /* ─── Component: Menu / popover ─── */
+    --hs-comp-menu-shadow: var(--hs-shadow-overlay-bottom);
+
+    /* ─── Overlay: scrim (drawer, modal) ─── */
+    --hs-color-overlay-scrim: rgba(28, 28, 28, 0.3);
+
+    /* ─── Component: Card ─── */
+    --hs-comp-card-radius: var(--hs-radii-3);
+    --hs-comp-card-shadow-raised: var(--hs-shadow-raised);
+
+    /* ─── Spacing ─── */
+    --hs-spacing-1: 4px;
+    --hs-spacing-2: 8px;
+    --hs-spacing-3: 12px;
+    --hs-spacing-4: 16px;
+    --hs-spacing-5: 20px;
+    --hs-spacing-6: 24px;
+    --hs-spacing-8: 32px;
+    --hs-spacing-10: 40px;
+    --hs-spacing-12: 48px;
+    --hs-spacing-16: 64px;
+    --hs-spacing-content-to-button: 24px;
+
+    /* ─── Border Radius ─── */
+    --hs-radii-1: 4px;
+    --hs-radii-2: 8px;
+    --hs-radii-3: 12px;
+    --hs-radii-4: 16px;
+    --hs-radii-6: 24px;
+    --hs-radii-circle: 50px;
+
+    /* ─── Stroke ─── */
+    --hs-stroke-weight-base: 1px;
+
+    /* ─── Sizes ─── */
+    --hs-size-2: 8px;
+    --hs-size-3: 12px;
+    --hs-size-4: 16px;
+    --hs-size-6: 24px;
+    --hs-size-8: 32px;
+    --hs-size-10: 40px;
+    --hs-size-12: 48px;
+    --hs-size-14: 56px;
+    --hs-size-16: 64px;
+    --hs-size-18: 72px;
+    --hs-touch-target-area: 48px;
+
+    /* ─── Typography: Title ─── */
+    --hs-font-size-display-1: 48px;
+    --hs-line-height-display-1: 56px;
+    --hs-letter-spacing-display-1: 0;
+    --hs-font-weight-display-1: 700;
+
+    --hs-font-size-display-2: 36px;
+    --hs-line-height-display-2: 44px;
+    --hs-letter-spacing-display-2: 0;
+    --hs-font-weight-display-2: 700;
+
+    --hs-font-size-display-3: 26px;
+    --hs-line-height-display-3: 32px;
+    --hs-letter-spacing-display-3: 0;
+    --hs-font-weight-display-3: 600;
+
+    /* ─── Typography: Body ─── */
+    --hs-font-size-base-small: 14px;
+    --hs-line-height-base-small: 24px;
+    --hs-letter-spacing-base-small: 0;
+    --hs-font-weight-base-small: 400;
+
+    --hs-font-size-base-medium: 16px;
+    --hs-line-height-base-medium: 24px;
+    --hs-letter-spacing-base-medium: 0;
+    --hs-font-weight-base-medium: 400;
+
+    /* ─── Typography: Strong ─── */
+    --hs-font-size-strong-medium: 16px;
+    --hs-line-height-strong-medium: 24px;
+    --hs-letter-spacing-strong-medium: 0;
+    --hs-font-weight-strong-medium: 600;
+
+    /* ─── Typography: Label ─── */
+    --hs-font-size-label-medium: 16px;
+    --hs-line-height-label-medium: 24px;
+    --hs-letter-spacing-label-medium: 0;
+    --hs-font-weight-label-medium: 600;
+
+    /* ─── Typography: Button ─── */
+    --hs-font-size-button-small: 14px;
+    --hs-line-height-button-small: 24px;
+    --hs-letter-spacing-button-small: 0;
+    --hs-font-weight-button-small: 700;
+
+    --hs-font-size-button-medium: 16px;
+    --hs-line-height-button-medium: 24px;
+    --hs-letter-spacing-button-medium: 0;
+    --hs-font-weight-button-medium: 700;
+
+    /* ─── Typography: Link ─── */
+    --hs-font-size-link-small: 14px;
+    --hs-line-height-link-small: 24px;
+    --hs-letter-spacing-link-small: 0;
+    --hs-font-weight-link-small: 400;
+
+    --hs-font-size-link-medium: 16px;
+    --hs-line-height-link-medium: 24px;
+    --hs-letter-spacing-link-medium: 0;
+    --hs-font-weight-link-medium: 400;
+
+    /* ─── Typography: Others/Label ─── */
+    --hs-font-size-others-label: 16px;
+    --hs-line-height-others-label: 20px;
+    --hs-letter-spacing-others-label: 0;
+    --hs-font-weight-others-label: 700;
+
+    /* ─── Typography: Others/Timestamp ─── */
+    --hs-font-size-others-timestamp: 14px;
+    --hs-line-height-others-timestamp: 18px;
+    --hs-letter-spacing-others-timestamp: 0;
+    --hs-font-weight-others-timestamp: 400;
+
+    /* ─── Typography: Title Section ─── */
+    --hs-font-size-title-section: 26px;
+    --hs-font-weight-title-section: 600;
+
+    /* ─── Component: Combobox ─── */
+    --hs-comp-combobox-bg: var(--hs-palette-neutrals-light-10);
+    --hs-comp-combobox-border: var(--hs-palette-border-input);
+    /** Multi-select list (tree rows): Bento uses info-tint surface + Secondary Blue checks — not primary filled */
+    --hs-comp-combobox-list-row-selected-bg: var(--hs-comp-alert-info-bg);
+    --hs-comp-combobox-checkbox-selected-fill: var(--hs-palette-secondary-blue);
+
+    /* ─── Motion (durations + easing — use in inline transition/animation) ─── */
+    --hs-motion-duration-instant: 0ms;
+    --hs-motion-duration-fast: 100ms;
+    --hs-motion-duration-emphasis: 120ms;
+    --hs-motion-duration-medium: 150ms;
+    --hs-motion-duration-slow: 200ms;
+    --hs-motion-easing-standard: ease;
+    --hs-motion-easing-emphasized: cubic-bezier(0.2, 0, 0, 1);
+
+    /* ─── Elevation / Shadows ─── */
+    --hs-shadow-raised: 0px 1px 3px rgba(28, 28, 28, 0.08), 0px 0px 1px rgba(28, 28, 28, 0.16);
+    --hs-shadow-overlay-top: 0px -8px 16px rgba(28, 28, 28, 0.16), 0px 0px 1px rgba(28, 28, 28, 0.28);
+    --hs-shadow-overlay-bottom: 0px 8px 16px rgba(28, 28, 28, 0.16), 0px 0px 1px rgba(28, 28, 28, 0.28);
+    --hs-shadow-overlay-left: -8px 0px 16px rgba(28, 28, 28, 0.16), 0px 0px 1px rgba(28, 28, 28, 0.28);
+    --hs-shadow-overlay-right: 8px 0px 16px rgba(28, 28, 28, 0.16), 0px 0px 1px rgba(28, 28, 28, 0.28);
+    /** Modal / dialog surface (stronger than raised, softer than full overlay menu) */
+    --hs-shadow-modal: 0 8px 24px rgba(28, 28, 28, 0.18);
+
+    /* ─── Focus ring ─── */
+    --hs-focus-ring: 0 0 0 2px var(--hs-color-fill-app), 0 0 0 4px var(--hs-color-border-focus);
+
+    /* ─── Overlay ─── */
+    --hs-color-overlay-inverse: rgba(255, 255, 255, 0.64);
+  }
+
+  *, *::before, *::after {
+    font-family: var(--hs-typeface-base-font-family);
+  }
+}
