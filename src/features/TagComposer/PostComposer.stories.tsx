@@ -25,5 +25,5 @@ type Story = StoryObj<typeof PostComposer>;
 
 export const CreateAPost: Story = {
   name: "Create a post (full layout)",
-  render: () => <PostComposer />,
+  render: () => <PostComposer showOwlyAssistant={false} />,
 };

@@ -1,13 +1,18 @@
 import { useState, useEffect, useRef, useMemo } from "react";
+import { Button } from "../../components/Button";
 import { Checkbox } from "../../components/Checkbox";
 import { IconButton } from "../../components/IconButton";
 import type { Tag, TagGroup } from "./types";
 import { HS_FONT_FAMILY } from "../../lib/hs-font-family";
+import { useFigmaCommentUpdatesEnabled } from "./FigmaCommentUpdatesContext";
+import { FigmaUpdateNote } from "./FigmaUpdateNote";
+import { FIGMA_UPDATE_COPY } from "./figma-comment-update-copy";
 import { TagBulkToolbar } from "./TagBulkToolbar";
+import { MoveToGroupMenu } from "./MoveToGroupMenu";
 
 // ─── DropdownMenu (local) ─────────────────────────────────────────────────
 
-function DropdownMenu({
+export function DropdownMenu({
   items,
   onClose,
 }: {
@@ -35,7 +40,7 @@ function DropdownMenu({
         zIndex: 2000,
         minWidth: 200,
         borderRadius: 8,
-        background: "var(--hs-color-fill-app)",
+        background: "var(--hs-color-fill-base)",
         boxShadow:
           "var(--hs-comp-menu-shadow)",
         fontFamily: HS_FONT_FAMILY,
@@ -86,66 +91,6 @@ function DropdownMenuItem({
   );
 }
 
-function MoveToGroupMenu({
-  availableGroups,
-  onSelect,
-  onClose,
-}: {
-  availableGroups: Array<{ id: string; name: string }>;
-  onSelect: (groupId: string) => void;
-  onClose: () => void;
-}) {
-  const ref = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    function handler(e: MouseEvent) {
-      if (ref.current && !ref.current.contains(e.target as Node)) onClose();
-    }
-    document.addEventListener("mousedown", handler);
-    return () => document.removeEventListener("mousedown", handler);
-  }, [onClose]);
-
-  return (
-    <div
-      ref={ref}
-      style={{
-        position: "absolute",
-        right: 0,
-        top: "100%",
-        marginTop: 4,
-        zIndex: 2000,
-        minWidth: 220,
-        borderRadius: 8,
-        background: "var(--hs-color-fill-app)",
-        boxShadow: "var(--hs-comp-menu-shadow)",
-        fontFamily: HS_FONT_FAMILY,
-        padding: "8px 0",
-      }}
-    >
-      <div
-        style={{
-          padding: "8px 16px",
-          fontSize: 12,
-          fontWeight: 600,
-          color: "var(--hs-color-text-subtle)",
-          textTransform: "uppercase",
-          letterSpacing: 0.5,
-        }}
-      >
-        Move to group
-      </div>
-      {availableGroups.map((g) => (
-        <DropdownMenuItem key={g.id} label={g.name} onClick={() => onSelect(g.id)} />
-      ))}
-      {availableGroups.length === 0 && (
-        <div style={{ padding: "12px 16px", fontSize: 14, color: "var(--hs-color-text-disabled)" }}>
-          No groups available
-        </div>
-      )}
-    </div>
-  );
-}
-
 // ─── Props ────────────────────────────────────────────────────────────────
 
 interface TagGroupCardProps {
@@ -160,10 +105,33 @@ interface TagGroupCardProps {
   onBulkArchive?: (tagIds: string[]) => void;
   onBulkMove?: (tagIds: string[], targetGroupId: string) => void;
   onBulkDelete?: (tagIds: string[]) => void;
+  /** When set, “Delete group” moves tags to Ungrouped then removes the group (preferred over bulk-deleting tags). */
+  onDeleteGroup?: () => void;
+  /** Parent-owned selection for the hub list (enforces one-group bulk selection). */
+  selectedTagIds?: Set<string>;
+  onToggleTagSelect?: (tagId: string) => void;
+  onToggleAllDisplayedTags?: (tags: Tag[]) => void;
+  onClearGroupSelection?: () => void;
+  /** When set and different from this card’s `group.id`, row/header checkboxes are disabled. */
+  selectionLockGroupId?: string | null;
   availableGroups?: Array<{ id: string; name: string }>;
   /** Controlled expansion (e.g. expand/collapse all from parent). Omit for local-only toggle. */
   expanded?: boolean;
   onExpandedChange?: (expanded: boolean) => void;
+  /**
+   * When set, the tag table lists these tags instead of `group.tags` (e.g. global search).
+   * Header meta and counts still use the full `group` (e.g. total tag count).
+   */
+  tagsTableOverride?: Tag[];
+  /** Shown when `tagsTableOverride` hides some tags; reveals every tag in the group without clearing search. */
+  onShowAllTagsInGroup?: () => void;
+  /**
+   * MP hub: “Ungrouped tags” appears as a card on the Groups list — show kebab with Create tag only
+   * (Figma 4035:112847); omit archive/edit/delete group for this pseudo-row.
+   */
+  ungroupedMpHubMenu?: boolean;
+  /** First matching group card on the hub: Figma “updates” pin for header meta / total tag count. */
+  figmaAnnotateGroupMeta?: boolean;
 }
 
 export function TagGroupCard({
@@ -178,20 +146,52 @@ export function TagGroupCard({
   onBulkArchive,
   onBulkMove,
   onBulkDelete,
+  onDeleteGroup,
+  selectedTagIds,
+  onToggleTagSelect,
+  onToggleAllDisplayedTags,
+  onClearGroupSelection,
+  selectionLockGroupId = null,
   availableGroups = [],
   expanded: expandedProp,
   onExpandedChange,
+  tagsTableOverride,
+  onShowAllTagsInGroup,
+  ungroupedMpHubMenu = false,
+  figmaAnnotateGroupMeta = false,
 }: TagGroupCardProps) {
+  const figmaCommentUpdatesEnabled = useFigmaCommentUpdatesEnabled();
   const [expandedInternal, setExpandedInternal] = useState(false);
   const isControlled = expandedProp !== undefined;
   const expanded = isControlled ? expandedProp : expandedInternal;
-  const [selectedTags, setSelectedTags] = useState<Set<string>>(new Set());
+  const selectionControlled = selectedTagIds !== undefined;
+  const [internalSelectedTags, setInternalSelectedTags] = useState<Set<string>>(new Set());
+  const selectedTags = selectionControlled ? selectedTagIds! : internalSelectedTags;
   const [moreMenuOpen, setMoreMenuOpen] = useState(false);
   const [bulkMoveOpen, setBulkMoveOpen] = useState(false);
   const isUngrouped = group.id === "ungrouped";
 
-  /** Parent applies global search; no per-card filter. */
-  const displayTags = group.tags;
+  const displayTags = tagsTableOverride ?? group.tags;
+
+  const showSearchShowAllRow =
+    tagsTableOverride !== undefined &&
+    onShowAllTagsInGroup &&
+    tagsTableOverride.length < group.tags.length;
+
+  useEffect(() => {
+    if (selectionControlled) return;
+    const allowed = new Set(displayTags.map((t) => t.id));
+    setInternalSelectedTags((prev) => {
+      let changed = false;
+      const next = new Set<string>();
+      for (const id of prev) {
+        if (allowed.has(id)) next.add(id);
+        else changed = true;
+      }
+      if (!changed && next.size === prev.size) return prev;
+      return next;
+    });
+  }, [displayTags, selectionControlled]);
 
   const selectedInDisplay = useMemo(
     () => displayTags.filter((t) => selectedTags.has(t.id)).length,
@@ -199,21 +199,35 @@ export function TagGroupCard({
   );
 
   const toggleTag = (id: string) => {
+    if (onToggleTagSelect) {
+      onToggleTagSelect(id);
+      return;
+    }
     const next = new Set(selectedTags);
     next.has(id) ? next.delete(id) : next.add(id);
-    setSelectedTags(next);
+    setInternalSelectedTags(next);
   };
 
   const toggleAll = () => {
-    if (selectedTags.size === displayTags.length) setSelectedTags(new Set());
-    else setSelectedTags(new Set(displayTags.map((t) => t.id)));
+    if (onToggleAllDisplayedTags) {
+      onToggleAllDisplayedTags(displayTags);
+      return;
+    }
+    if (selectedTags.size === displayTags.length) setInternalSelectedTags(new Set());
+    else setInternalSelectedTags(new Set(displayTags.map((t) => t.id)));
   };
 
-  const clearSelection = () => setSelectedTags(new Set());
+  const clearSelection = () => {
+    if (onClearGroupSelection) onClearGroupSelection();
+    else setInternalSelectedTags(new Set());
+  };
 
   const toggleExpanded = () => {
     const prev = expanded;
     const next = !prev;
+    if (prev && !next && selectedTags.size > 0) {
+      return;
+    }
     if (prev) {
       clearSelection();
       setMoreMenuOpen(false);
@@ -222,7 +236,9 @@ export function TagGroupCard({
     else setExpandedInternal(next);
   };
 
-  const showBulkToolbar = expanded && selectedTags.size > 0;
+  const showCheckboxes = displayTags.length >= 2;
+  const checkboxColumnLocked = selectionLockGroupId != null && selectionLockGroupId !== group.id;
+  const showBulkToolbar = expanded && selectedTags.size > 0 && showCheckboxes;
   const [tagNameSortDesc, setTagNameSortDesc] = useState(false);
 
   const sortedDisplayTags = useMemo(() => {
@@ -235,11 +251,6 @@ export function TagGroupCard({
 
   const handleBulkArchive = () => {
     onBulkArchive?.(Array.from(selectedTags));
-    clearSelection();
-  };
-
-  const handleBulkDelete = () => {
-    onBulkDelete?.(Array.from(selectedTags));
     clearSelection();
   };
 
@@ -260,22 +271,66 @@ export function TagGroupCard({
         fontFamily: HS_FONT_FAMILY,
       }}
     >
-      {/* Card header — Figma nested-list-item: min 80px, tag count + arrow, kebab only */}
+      {/* Card header — Figma .ignore-nested-dropdown-item/tree: arrow_left column + content + kebab (Modal-Exploration Tagging) */}
       <div
         onClick={toggleExpanded}
+        role="button"
+        tabIndex={0}
+        aria-expanded={expanded}
+        aria-label={`${expanded ? "Collapse" : "Expand"} ${group.name}`}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            toggleExpanded();
+          }
+        }}
         style={{
           display: "flex",
           alignItems: "flex-start",
-          gap: 16,
+          gap: 12,
           minHeight: 80,
           padding: "16px",
-          cursor: "pointer",
+          cursor: expanded && selectedTags.size > 0 ? "not-allowed" : "pointer",
           background: "transparent",
+          /* Single hairline between header meta and table — match row dividers, not border-base */
           borderBottom: expanded
-            ? "1px solid var(--hs-color-border-base)"
+            ? "1px solid var(--hs-color-border-subtle)"
             : "none",
         }}
       >
+        {/* container-expand — chevron aligns with title row (pt matches Figma container-expand) */}
+        <div
+          style={{
+            display: "flex",
+            flexShrink: 0,
+            alignItems: "flex-start",
+            justifyContent: "center",
+            minWidth: 24,
+            paddingTop: 16,
+          }}
+          aria-hidden
+        >
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0 }}>
+            {expanded ? (
+              <path
+                d="M7 10l5 5 5-5"
+                stroke="var(--hs-color-icon-base)"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            ) : (
+              <path
+                d="M10 7l5 5-5 5"
+                stroke="var(--hs-color-icon-base)"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            )}
+          </svg>
+        </div>
+
         <div style={{ flex: 1, minWidth: 0 }}>
           <p
             style={{
@@ -292,6 +347,7 @@ export function TagGroupCard({
             {group.name}
           </p>
           <div
+            data-annotate={figmaAnnotateGroupMeta ? "figma-tag-group-meta" : undefined}
             style={{
               display: "flex",
               alignItems: "center",
@@ -304,65 +360,46 @@ export function TagGroupCard({
             }}
           >
             <span>{group.required ? "Required" : "Not required"}</span>
-            <span aria-hidden>•</span>
+            <span aria-hidden style={{ color: "var(--hs-color-border-subtle)" }}>
+              •
+            </span>
             <span>
               {group.visibility === "everyone"
                 ? "Visible to everyone"
-                : "Admins only"}
+                : "Visible to workspace admins only"}
             </span>
-            <span aria-hidden>•</span>
+            <span aria-hidden style={{ color: "var(--hs-color-border-subtle)" }}>
+              •
+            </span>
             <span>
-              {group.permissions === "admin"
-                ? "Admin can add tags"
-                : "Everyone can add tags"}
+              {group.tags.length === 0
+                ? "No tag yet"
+                : `${group.tags.length} ${group.tags.length === 1 ? "tag" : "tags"}`}
             </span>
-            <span aria-hidden>•</span>
-            <button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                toggleExpanded();
-              }}
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 0,
-                margin: 0,
-                padding: 0,
-                border: "none",
-                background: "none",
-                cursor: "pointer",
-                fontFamily: HS_FONT_FAMILY,
-                fontSize: 16,
-                lineHeight: "24px",
-                color: "var(--hs-color-text-base)",
-              }}
-            >
-              <span style={{ textDecoration: "underline" }}>
-                {group.tags.length} tags
-              </span>
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden style={{ flexShrink: 0 }}>
-                {expanded ? (
-                  <path d="M7 10l5 5 5-5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                ) : (
-                  <path d="M10 7l5 5-5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                )}
-              </svg>
-            </button>
           </div>
+          {figmaCommentUpdatesEnabled && figmaAnnotateGroupMeta && (
+            <FigmaUpdateNote style={{ marginTop: 8 }}>
+              {FIGMA_UPDATE_COPY.groupHeaderMeta}
+            </FigmaUpdateNote>
+          )}
+          {group.visibility !== "everyone" && figmaCommentUpdatesEnabled && (
+            <FigmaUpdateNote data-annotate="figma-group-visibility-disclaimer" style={{ marginTop: 8 }}>
+              {FIGMA_UPDATE_COPY.groupVisibilityDisclaimer}
+            </FigmaUpdateNote>
+          )}
         </div>
 
-        {!isUngrouped && (
+        {(!isUngrouped || ungroupedMpHubMenu) && (
           <div
             style={{
               display: "flex",
               alignItems: "flex-start",
               flexShrink: 0,
-              paddingTop: 0,
+              paddingTop: 8,
             }}
             onClick={(e) => e.stopPropagation()}
           >
-            <div style={{ position: "relative" }}>
+            <div style={{ position: "relative" }} data-annotate="call-card-overflow-menu">
               <IconButton
                 icon={
                   <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
@@ -378,37 +415,67 @@ export function TagGroupCard({
               />
               {moreMenuOpen && (
                 <DropdownMenu
-                  items={[
-                    {
-                      label: "Create tag",
-                      onClick: () => {
-                        setMoreMenuOpen(false);
-                        onCreateTag?.();
-                      },
-                    },
-                    {
-                      label: "Edit",
-                      onClick: () => {
-                        setMoreMenuOpen(false);
-                        onEditGroup?.();
-                      },
-                    },
-                    {
-                      label: "Archive",
-                      onClick: () => {
-                        setMoreMenuOpen(false);
-                        onArchiveGroup?.();
-                      },
-                    },
-                    {
-                      label: "Delete group",
-                      destructive: true,
-                      onClick: () => {
-                        setMoreMenuOpen(false);
-                        onBulkDelete?.(group.tags.map((t) => t.id));
-                      },
-                    },
-                  ]}
+                  items={
+                    ungroupedMpHubMenu
+                      ? [
+                          {
+                            label: "Add tags",
+                            onClick: () => {
+                              setMoreMenuOpen(false);
+                              onCreateTag?.();
+                            },
+                          },
+                        ]
+                      : group.tags.length > 0
+                        ? [
+                            {
+                              label: "Add tags",
+                              onClick: () => {
+                                setMoreMenuOpen(false);
+                                onCreateTag?.();
+                              },
+                            },
+                            {
+                              label: "Edit",
+                              onClick: () => {
+                                setMoreMenuOpen(false);
+                                onEditGroup?.();
+                              },
+                            },
+                            {
+                              label: "Archive tags",
+                              onClick: () => {
+                                setMoreMenuOpen(false);
+                                onArchiveGroup?.();
+                              },
+                            },
+                          ]
+                        : [
+                            {
+                              label: "Add tags",
+                              onClick: () => {
+                                setMoreMenuOpen(false);
+                                onCreateTag?.();
+                              },
+                            },
+                            {
+                              label: "Edit",
+                              onClick: () => {
+                                setMoreMenuOpen(false);
+                                onEditGroup?.();
+                              },
+                            },
+                            {
+                              label: "Delete",
+                              destructive: true,
+                              onClick: () => {
+                                setMoreMenuOpen(false);
+                                if (onDeleteGroup) onDeleteGroup();
+                                else onBulkDelete?.(group.tags.map((t) => t.id));
+                              },
+                            },
+                          ]
+                  }
                   onClose={() => setMoreMenuOpen(false)}
                 />
               )}
@@ -419,21 +486,8 @@ export function TagGroupCard({
 
       {/* Expanded section */}
       {expanded && (
-        <div style={{ borderTop: "1px solid var(--hs-color-border-subtle)" }}>
-          {showBulkToolbar && (
-            <TagBulkToolbar
-              count={selectedTags.size}
-              availableGroups={availableGroups}
-              bulkMoveOpen={bulkMoveOpen}
-              onToggleBulkMove={() => setBulkMoveOpen((v) => !v)}
-              onBulkMove={handleBulkMove}
-              onBulkArchive={handleBulkArchive}
-              onBulkDelete={handleBulkDelete}
-              onCloseBulkMove={() => setBulkMoveOpen(false)}
-              onClearSelection={clearSelection}
-            />
-          )}
-          {/* Table — Figma comp-table: Tag name + Action (140px), menu button per row */}
+        <div>
+          {/* Table — Figma comp-table; bulk selection row replaces sort header when items selected */}
           <table style={{ width: "100%", borderCollapse: "collapse" }}>
             <thead>
               <tr
@@ -442,70 +496,96 @@ export function TagGroupCard({
                   borderBottom: "1px solid var(--hs-color-border-subtle)",
                 }}
               >
-                <th
-                  style={{
-                    width: 56,
-                    minHeight: 56,
-                    padding: "16px",
-                    textAlign: "left",
-                    verticalAlign: "middle",
-                  }}
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <Checkbox
-                    checked={
-                      selectedInDisplay === displayTags.length &&
-                      displayTags.length > 0
-                    }
-                    indeterminate={
-                      selectedInDisplay > 0 &&
-                      selectedInDisplay < displayTags.length
-                    }
-                    onChange={toggleAll}
-                  />
-                </th>
-                <th
-                  style={{
-                    textAlign: "left",
-                    padding: "16px",
-                    minHeight: 56,
-                    cursor: "pointer",
-                    userSelect: "none",
-                    verticalAlign: "middle",
-                  }}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setTagNameSortDesc((v) => !v);
-                  }}
-                >
-                  <div
+                {showCheckboxes && (
+                  <th
+                    data-annotate="call-tag-card-checkboxes"
                     style={{
-                      display: "inline-flex",
-                      alignItems: "center",
-                      gap: 8,
+                      width: 56,
+                      minHeight: 56,
+                      padding: "16px",
+                      textAlign: "left",
+                      verticalAlign: "middle",
+                    }}
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <Checkbox
+                      checked={
+                        selectedInDisplay === displayTags.length &&
+                        displayTags.length > 0
+                      }
+                      indeterminate={
+                        selectedInDisplay > 0 &&
+                        selectedInDisplay < displayTags.length
+                      }
+                      onChange={toggleAll}
+                      disabled={checkboxColumnLocked}
+                    />
+                  </th>
+                )}
+                {showBulkToolbar ? (
+                  <th
+                    style={{
+                      textAlign: "left",
+                      padding: "0 16px",
+                      minHeight: 56,
+                      verticalAlign: "middle",
+                    }}
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <TagBulkToolbar
+                      count={selectedTags.size}
+                      availableGroups={availableGroups}
+                      bulkMoveOpen={bulkMoveOpen}
+                      onToggleBulkMove={() => setBulkMoveOpen((v) => !v)}
+                      onBulkMove={handleBulkMove}
+                      onBulkArchive={handleBulkArchive}
+                      onCloseBulkMove={() => setBulkMoveOpen(false)}
+                    />
+                  </th>
+                ) : (
+                  <th
+                    style={{
+                      textAlign: "left",
+                      padding: "16px",
+                      minHeight: 56,
+                      cursor: "pointer",
+                      userSelect: "none",
+                      verticalAlign: "middle",
+                    }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setTagNameSortDesc((v) => !v);
                     }}
                   >
-                    <span
+                    <div
                       style={{
-                        fontSize: 16,
-                        lineHeight: "24px",
-                        fontWeight: 600,
-                        color: "var(--hs-color-text-base)",
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: 8,
                       }}
                     >
-                      Tag name
-                    </span>
-                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden>
-                      <path
-                        d={tagNameSortDesc ? "M6 8l4 4 4-4" : "M6 12l4-4 4 4"}
-                        stroke="var(--hs-color-text-base)"
-                        strokeWidth="1.5"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    </svg>
-                  </div>
-                </th>
+                      <span
+                        style={{
+                          fontSize: 16,
+                          lineHeight: "24px",
+                          fontWeight: 600,
+                          color: "var(--hs-color-text-base)",
+                        }}
+                      >
+                        Tag name
+                      </span>
+                      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden>
+                        <path
+                          d={tagNameSortDesc ? "M6 8l4 4 4-4" : "M6 12l4-4 4 4"}
+                          stroke="var(--hs-color-text-base)"
+                          strokeWidth="1.5"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      </svg>
+                    </div>
+                  </th>
+                )}
                 <th
                   style={{
                     width: 140,
@@ -519,7 +599,7 @@ export function TagGroupCard({
                   }}
                   onClick={(e) => e.stopPropagation()}
                 >
-                  Action
+                  Actions
                 </th>
               </tr>
             </thead>
@@ -535,12 +615,14 @@ export function TagGroupCard({
                   onDelete={() => onDeleteTag?.(tag.id)}
                   onMove={(targetGroupId) => onMoveTag?.(tag.id, targetGroupId)}
                   availableGroups={availableGroups}
+                  showCheckbox={showCheckboxes}
+                  checkboxDisabled={checkboxColumnLocked}
                 />
               ))}
               {displayTags.length === 0 && (
                 <tr>
                   <td
-                    colSpan={3}
+                    colSpan={showCheckboxes ? 3 : 2}
                     style={{
                       padding: "24px 16px",
                       textAlign: "center",
@@ -554,6 +636,19 @@ export function TagGroupCard({
               )}
             </tbody>
           </table>
+          {showSearchShowAllRow && (
+            <div
+              style={{
+                padding: "12px 16px",
+                borderTop: "1px solid var(--hs-color-border-subtle)",
+                background: "var(--hs-color-fill-base)",
+              }}
+            >
+              <Button variant="secondary" type="button" onClick={onShowAllTagsInGroup}>
+                Show all {group.tags.length} tags in {group.name}
+              </Button>
+            </div>
+          )}
         </div>
       )}
     </div>
@@ -571,6 +666,8 @@ export function TagRow({
   onDelete,
   onMove,
   availableGroups,
+  showCheckbox = true,
+  checkboxDisabled = false,
 }: {
   tag: Tag;
   selected: boolean;
@@ -580,9 +677,10 @@ export function TagRow({
   onDelete: () => void;
   onMove: (targetGroupId: string) => void;
   availableGroups: Array<{ id: string; name: string }>;
+  showCheckbox?: boolean;
+  checkboxDisabled?: boolean;
 }) {
   const [menuOpen, setMenuOpen] = useState(false);
-  const [moveOpen, setMoveOpen] = useState(false);
   const rowBg = selected ? "var(--hs-comp-badge-neutral-bg)" : "var(--hs-color-fill-base)";
 
   return (
@@ -593,51 +691,32 @@ export function TagRow({
         background: rowBg,
       }}
     >
+      {showCheckbox && (
+        <td
+          style={{
+            padding: "16px",
+            verticalAlign: "middle",
+          }}
+        >
+          <Checkbox checked={selected} onChange={onToggle} disabled={checkboxDisabled} />
+        </td>
+      )}
       <td
         style={{
           padding: "16px",
           verticalAlign: "middle",
         }}
       >
-        <Checkbox checked={selected} onChange={onToggle} />
-      </td>
-      <td
-        style={{
-          padding: "16px",
-          verticalAlign: "middle",
-        }}
-      >
-        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              width: 24,
-              height: 24,
-              flexShrink: 0,
-            }}
-          >
-            <span
-              style={{
-                width: 12,
-                height: 12,
-                borderRadius: 999,
-                background: tag.color || "var(--hs-color-border-base)",
-              }}
-            />
-          </div>
-          <span
-            style={{
-              fontSize: 16,
-              lineHeight: "24px",
-              fontWeight: 400,
-              color: "var(--hs-color-text-base)",
-            }}
-          >
-            {tag.name}
-          </span>
-        </div>
+        <span
+          style={{
+            fontSize: 16,
+            lineHeight: "24px",
+            fontWeight: 400,
+            color: "var(--hs-color-text-base)",
+          }}
+        >
+          {tag.name}
+        </span>
       </td>
       <td
         style={{
@@ -661,7 +740,6 @@ export function TagRow({
             onClick={(e) => {
               e.stopPropagation();
               setMenuOpen((v) => !v);
-              setMoveOpen(false);
             }}
           />
           {menuOpen && (
@@ -675,39 +753,14 @@ export function TagRow({
                   },
                 },
                 {
-                  label: "Move to group",
-                  onClick: () => {
-                    setMenuOpen(false);
-                    setMoveOpen(true);
-                  },
-                },
-                {
                   label: "Archive",
                   onClick: () => {
                     setMenuOpen(false);
                     onArchive();
                   },
                 },
-                {
-                  label: "Delete",
-                  destructive: true,
-                  onClick: () => {
-                    setMenuOpen(false);
-                    onDelete();
-                  },
-                },
               ]}
               onClose={() => setMenuOpen(false)}
-            />
-          )}
-          {moveOpen && (
-            <MoveToGroupMenu
-              availableGroups={availableGroups}
-              onSelect={(gid) => {
-                setMoveOpen(false);
-                onMove(gid);
-              }}
-              onClose={() => setMoveOpen(false)}
             />
           )}
         </div>

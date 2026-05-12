@@ -6,6 +6,7 @@ import type { ComposerTag, ComposerTagGroup } from "./types";
 interface TagComboboxProps {
   label?: string;
   required?: boolean;
+  helperText?: string;
   groups: ComposerTagGroup[];
   ungrouped: ComposerTag[];
   selected: ComposerTag[];
@@ -22,6 +23,7 @@ interface TagComboboxProps {
 export function TagCombobox({
   label,
   required,
+  helperText,
   groups,
   ungrouped,
   selected,
@@ -37,7 +39,7 @@ export function TagCombobox({
   const [open, setOpen] = useState(false);
   const [inputValue, setInputValue] = useState("");
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(
-    new Set(groups.map((g) => g.id))
+    new Set([...groups.filter((g) => g.required).map((g) => g.id), "favorites"])
   );
   const wrapperRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -54,9 +56,17 @@ export function TagCombobox({
     return () => document.removeEventListener("mousedown", handleOutside);
   }, []);
 
+  // Sorted: required groups A-Z first, then optional A-Z — matches Figma spec
+  const sortedGroups = useMemo(() => {
+    return [...groups].sort((a, b) => {
+      if (a.required !== b.required) return a.required ? -1 : 1;
+      return a.name.localeCompare(b.name);
+    });
+  }, [groups]);
+
   const allTags = useMemo(
-    () => [...groups.flatMap((g) => g.tags), ...ungrouped],
-    [groups, ungrouped]
+    () => [...sortedGroups.flatMap((g) => g.tags), ...ungrouped],
+    [sortedGroups, ungrouped]
   );
   const favoriteTags = useMemo(
     () => allTags.filter((t) => t.favorited),
@@ -65,11 +75,11 @@ export function TagCombobox({
 
   const q = inputValue.toLowerCase().trim();
   const filteredGroups = useMemo(() => {
-    if (!q) return groups;
-    return groups
+    if (!q) return sortedGroups;
+    return sortedGroups
       .map((g) => ({ ...g, tags: g.tags.filter((t) => t.name.toLowerCase().includes(q)) }))
       .filter((g) => g.tags.length > 0);
-  }, [groups, q]);
+  }, [sortedGroups, q]);
   const filteredUngrouped = useMemo(() => {
     if (!q) return ungrouped;
     return ungrouped.filter((t) => t.name.toLowerCase().includes(q));
@@ -94,16 +104,6 @@ export function TagCombobox({
   const toggle = (tag: ComposerTag) =>
     selectedIds.has(tag.id) ? onDeselect(tag.id) : onSelect(tag);
 
-  const groupCheckState = (g: ComposerTagGroup) => {
-    const n = g.tags.filter((t) => selectedIds.has(t.id)).length;
-    return n === 0 ? "none" : n === g.tags.length ? "all" : "some";
-  };
-
-  const toggleGroupAll = (g: ComposerTagGroup) => {
-    if (groupCheckState(g) === "all") g.tags.forEach((t) => onDeselect(t.id));
-    else g.tags.forEach((t) => { if (!selectedIds.has(t.id)) onSelect(t); });
-  };
-
   return (
     <div ref={wrapperRef} className={cn("relative", className)} style={{ fontFamily: HS_FONT_FAMILY }}>
       {/* ── Label row ── */}
@@ -120,6 +120,13 @@ export function TagCombobox({
             )}
           </div>
         </div>
+      )}
+
+      {/* ── Helper text ── */}
+      {helperText && (
+        <p style={{ fontSize: 14, lineHeight: "20px", color: "var(--hs-color-text-subtle)", margin: "0 0 8px" }}>
+          {helperText}
+        </p>
       )}
 
       {/* ── Trigger + "Manage tags" ── */}
@@ -225,7 +232,7 @@ export function TagCombobox({
               value={inputValue}
               onChange={(e) => { setInputValue(e.target.value); if (!open) setOpen(true); }}
               onFocus={() => setOpen(true)}
-              placeholder={selected.length === 0 ? "Search tags or browse by group..." : ""}
+              placeholder={selected.length === 0 ? "Select tags" : ""}
               style={{
                 flex: 1,
                 minWidth: 80,
@@ -302,7 +309,7 @@ export function TagCombobox({
             marginTop: 4,
             borderRadius: "var(--hs-comp-input-border-radii)",
             border: "1px solid var(--hs-color-border-subtle)",
-            background: "var(--hs-color-fill-app)",
+            background: "var(--hs-color-fill-base)",
             boxShadow: "var(--hs-comp-menu-shadow)",
             maxHeight: 456,
             minWidth: 160,
@@ -316,7 +323,7 @@ export function TagCombobox({
           {filteredFavorites.length > 0 && (
             <>
               <GroupRow
-                name="Favourites tag"
+                name="Favourites"
                 expanded={expandedGroups.has("favorites")}
                 onToggle={() => toggleGroup("favorites")}
                 fontFamily={HS_FONT_FAMILY}
@@ -329,15 +336,16 @@ export function TagCombobox({
           )}
 
           {/* Regular groups */}
-          {filteredGroups.map((g) => (
+          {filteredGroups.map((g) => {
+            const selectedInGroup = g.tags.filter((t) => selectedIds.has(t.id)).length;
+            const displayName = selectedInGroup > 0 ? `${g.name} (${selectedInGroup})` : g.name;
+            return (
             <div key={g.id}>
               <GroupRow
-                name={g.name}
+                name={displayName}
                 required={g.required}
                 expanded={expandedGroups.has(g.id)}
                 onToggle={() => toggleGroup(g.id)}
-                checkState={groupCheckState(g)}
-                onCheck={() => toggleGroupAll(g)}
                 fontFamily={HS_FONT_FAMILY}
               />
               {expandedGroups.has(g.id) &&
@@ -345,12 +353,24 @@ export function TagCombobox({
                   <TagRow key={t.id} tag={t} selected={selectedIds.has(t.id)} onToggle={() => toggle(t)} onFavorite={onFavorite} onUnfavorite={onUnfavorite} indent fontFamily={HS_FONT_FAMILY} />
                 ))}
             </div>
-          ))}
+            );
+          })}
 
-          {/* Ungrouped */}
-          {filteredUngrouped.map((t) => (
-            <TagRow key={t.id} tag={t} selected={selectedIds.has(t.id)} onToggle={() => toggle(t)} onFavorite={onFavorite} onUnfavorite={onUnfavorite} fontFamily={HS_FONT_FAMILY} />
-          ))}
+          {/* Ungrouped tags — show section header when items exist */}
+          {filteredUngrouped.length > 0 && (
+            <>
+              <GroupRow
+                name="Ungrouped tags"
+                expanded={expandedGroups.has("ungrouped")}
+                onToggle={() => toggleGroup("ungrouped")}
+                fontFamily={HS_FONT_FAMILY}
+              />
+              {expandedGroups.has("ungrouped") &&
+                filteredUngrouped.map((t) => (
+                  <TagRow key={t.id} tag={t} selected={selectedIds.has(t.id)} onToggle={() => toggle(t)} onFavorite={onFavorite} onUnfavorite={onUnfavorite} indent fontFamily={HS_FONT_FAMILY} />
+                ))}
+            </>
+          )}
 
           {/* No results */}
           {q && totalResults === 0 && (
@@ -416,9 +436,10 @@ function CheckboxIcon({ state }: { state: "none" | "some" | "all" }) {
           width: 18,
           height: 18,
           borderRadius: 4,
-          border: `2px solid ${active ? "var(--hs-comp-combobox-checkbox-selected-fill)" : "var(--hs-comp-input-border)"}`,
-          background: active ? "var(--hs-comp-combobox-checkbox-selected-fill)" : "var(--hs-comp-input-bg)",
+          border: `2px solid ${active ? "var(--hs-comp-button-filled-bg)" : "var(--hs-color-border-base)"}`,
+          background: active ? "var(--hs-comp-button-filled-bg)" : "var(--hs-comp-input-bg)",
           display: "block",
+          transition: "background 120ms, border-color 120ms",
         }}
       />
       {checked && (
@@ -440,16 +461,12 @@ function GroupRow({
   required,
   expanded,
   onToggle,
-  checkState,
-  onCheck,
   fontFamily,
 }: {
   name: string;
   required?: boolean;
   expanded: boolean;
   onToggle: () => void;
-  checkState?: "none" | "some" | "all";
-  onCheck?: () => void;
   fontFamily: string;
 }) {
   return (
@@ -467,14 +484,6 @@ function GroupRow({
       <span style={{ marginRight: 8, color: "var(--hs-color-icon-base)" }}>
         <Chevron expanded={expanded} />
       </span>
-      {checkState && onCheck && (
-        <span
-          style={{ marginRight: 12, cursor: "pointer" }}
-          onClick={(e) => { e.stopPropagation(); onCheck(); }}
-        >
-          <CheckboxIcon state={checkState} />
-        </span>
-      )}
       <span style={{ flex: 1, fontSize: 16, lineHeight: "24px", fontWeight: 600, color: "var(--hs-color-text-base)" }}>
         {name}
       </span>
@@ -514,7 +523,7 @@ function TagRow({
         display: "flex",
         alignItems: "center",
         minHeight: 48,
-        paddingLeft: indent ? 52 : 16,
+        paddingLeft: indent ? 44 : 16,
         paddingRight: 16,
         cursor: "pointer",
         background: selected

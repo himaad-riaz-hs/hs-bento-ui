@@ -1,4 +1,14 @@
 export { TagManagement } from "./TagManagement";
+export { TaggingFlowsShowcase } from "./TaggingFlowsShowcase";
+export { TaggingPrototypeJourney } from "./TaggingPrototypeJourney";
+export type { TaggingPrototypeJourneyProps } from "./TaggingPrototypeJourney";
+export { TagInteractivePrototype } from "./TagInteractivePrototype";
+export { TagAnnotationOverlay } from "./TagAnnotationOverlay";
+export type { AnnotationSpec, AnnotationSide } from "./TagAnnotationOverlay";
+export { FigmaCommentUpdatesProvider, useFigmaCommentUpdatesEnabled } from "./FigmaCommentUpdatesContext";
+export { FigmaUpdateNote } from "./FigmaUpdateNote";
+export { FIGMA_UPDATE_COPY, figmaNoteForDescriptionAnnotate } from "./figma-comment-update-copy";
+export { getTaggingPreset, type TaggingDataPreset, type TaggingSeedData } from "./tagging-presets";
 export { TagGroupCard, TagRow } from "./TagGroupCard";
 export { CreateGroupModal } from "./CreateGroupModal";
 export { CreateTagModal } from "./CreateTagModal";

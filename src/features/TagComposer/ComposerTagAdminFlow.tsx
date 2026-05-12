@@ -30,7 +30,7 @@ export function ComposerTagAdminFlow() {
             paddingLeft: 16,
             paddingRight: 16,
             borderBottom: "1px solid var(--hs-color-border-subtle)",
-            background: "var(--hs-color-fill-app)",
+            background: "var(--hs-color-fill-base)",
             boxSizing: "border-box",
           }}
         >
@@ -52,11 +52,11 @@ export function ComposerTagAdminFlow() {
           </button>
         </header>
         <div style={{ flex: 1, minHeight: 0, display: "flex", flexDirection: "column" }}>
-          <TagManagement embedded />
+          <TagManagement embedded layout="hub" hubWorkspace="figma-mp" />
         </div>
       </div>
     );
   }
 
-  return <PostComposer onManageTags={() => setView("tagAdmin")} />;
+  return <PostComposer showOwlyAssistant={false} onManageTags={() => setView("tagAdmin")} />;
 }

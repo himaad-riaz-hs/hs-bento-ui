@@ -11,34 +11,35 @@ export const sampleTags: Tag[] = [
   { id: "t6", name: "Seasonal", groupId: null, color: TAG_SWATCH.blue },
   { id: "t7", name: "Evergreen", groupId: null, color: TAG_SWATCH.green },
 
-  // Content Type group
-  { id: "t8", name: "Blog Post", groupId: "g1", color: TAG_SWATCH.blue },
-  { id: "t9", name: "Social Media", groupId: "g1", color: TAG_SWATCH.green },
-  { id: "t10", name: "Landing Page", groupId: "g1", color: TAG_SWATCH.purple },
-  { id: "t11", name: "Video", groupId: "g1", color: TAG_SWATCH.yellow },
+  // Brand group
+  { id: "t8", name: "Coke", groupId: "g1", color: TAG_SWATCH.pink },
+  { id: "t9", name: "Doritos", groupId: "g1", color: TAG_SWATCH.yellow },
+  { id: "t10", name: "Frito-Lay", groupId: "g1", color: TAG_SWATCH.yellow },
+  { id: "t11", name: "Gatorade", groupId: "g1", color: TAG_SWATCH.blue },
 
-  // Lead Status group
-  { id: "t12", name: "Lead Gen", groupId: "g2", color: TAG_SWATCH.blue },
-  { id: "t13", name: "MQL", groupId: "g2", color: TAG_SWATCH.green },
-  { id: "t14", name: "SQL", groupId: "g2", color: TAG_SWATCH.pink },
+  // Campaign group
+  { id: "t12", name: "Summer2026", groupId: "g2", color: TAG_SWATCH.blue },
+  { id: "t13", name: "Winter2026", groupId: "g2", color: TAG_SWATCH.purple },
+  { id: "t14", name: "Holiday2026", groupId: "g2", color: TAG_SWATCH.green },
+  { id: "t15", name: "Back-to-School", groupId: "g2", color: TAG_SWATCH.pink },
 
-  // Segment group
-  { id: "t15", name: "Enterprise", groupId: "g3", color: TAG_SWATCH.purple },
-  { id: "t16", name: "Mid-Market", groupId: "g3", color: TAG_SWATCH.blue },
-  { id: "t17", name: "SMB", groupId: "g3", color: TAG_SWATCH.yellow },
-  { id: "t18", name: "Startup", groupId: "g3", color: TAG_SWATCH.green },
-  { id: "t19", name: "Agency", groupId: "g3", color: TAG_SWATCH.pink },
+  // Country group
+  { id: "t16", name: "Canada", groupId: "g3", color: TAG_SWATCH.blue },
+  { id: "t17", name: "USA", groupId: "g3", color: TAG_SWATCH.green },
+  { id: "t18", name: "UK", groupId: "g3", color: TAG_SWATCH.purple },
+  { id: "t19", name: "Australia", groupId: "g3", color: TAG_SWATCH.yellow },
+  { id: "t20", name: "Germany", groupId: "g3", color: TAG_SWATCH.pink },
 
-  // Region group
-  { id: "t20", name: "North America", groupId: "g4", color: TAG_SWATCH.blue },
-  { id: "t21", name: "EMEA", groupId: "g4", color: TAG_SWATCH.purple },
-  { id: "t22", name: "APAC", groupId: "g4", color: TAG_SWATCH.yellow },
-  { id: "t23", name: "LATAM", groupId: "g4", color: TAG_SWATCH.green },
+  // Product Category group
+  { id: "t21", name: "Sunscreen", groupId: "g4", color: TAG_SWATCH.blue },
+  { id: "t22", name: "Moisturizer", groupId: "g4", color: TAG_SWATCH.green },
+  { id: "t23", name: "Shampoo", groupId: "g4", color: TAG_SWATCH.purple },
+  { id: "t24-cond", name: "Conditioner", groupId: "g4", color: TAG_SWATCH.yellow },
 
   // Archived tags
-  { id: "t24", name: "Legacy Campaign", groupId: null, color: TAG_SWATCH_NEUTRAL, archived: true },
-  { id: "t25", name: "Old Promo", groupId: null, color: TAG_SWATCH_NEUTRAL, archived: true },
-  { id: "t26", name: "Deprecated", groupId: null, color: TAG_SWATCH_NEUTRAL, archived: true },
+  { id: "t-arch1", name: "Legacy Campaign", groupId: null, color: TAG_SWATCH_NEUTRAL, archived: true },
+  { id: "t-arch2", name: "Old Promo", groupId: null, color: TAG_SWATCH_NEUTRAL, archived: true },
+  { id: "t-arch3", name: "Deprecated", groupId: null, color: TAG_SWATCH_NEUTRAL, archived: true },
 ];
 
 export const sampleGroups: TagGroup[] = [
@@ -52,7 +53,7 @@ export const sampleGroups: TagGroup[] = [
   },
   {
     id: "g1",
-    name: "Content Type",
+    name: "Brand",
     required: true,
     visibility: "everyone",
     permissions: "admin",
@@ -60,7 +61,7 @@ export const sampleGroups: TagGroup[] = [
   },
   {
     id: "g2",
-    name: "Lead Status",
+    name: "Campaign",
     required: true,
     visibility: "everyone",
     permissions: "admin",
@@ -68,7 +69,7 @@ export const sampleGroups: TagGroup[] = [
   },
   {
     id: "g3",
-    name: "Segment",
+    name: "Country",
     required: false,
     visibility: "everyone",
     permissions: "everyone",
@@ -76,7 +77,7 @@ export const sampleGroups: TagGroup[] = [
   },
   {
     id: "g4",
-    name: "Region",
+    name: "Product Category",
     required: false,
     visibility: "admins",
     permissions: "admin",
@@ -85,6 +86,15 @@ export const sampleGroups: TagGroup[] = [
 ];
 
 export const sampleArchivedGroups: TagGroup[] = [
+  {
+    id: "g-brand-arch",
+    name: "Brand",
+    required: false,
+    visibility: "everyone",
+    permissions: "everyone",
+    tags: [],
+    archived: true,
+  },
   {
     id: "g-archived-1",
     name: "Old Campaigns",
@@ -96,4 +106,8 @@ export const sampleArchivedGroups: TagGroup[] = [
   },
 ];
 
-export const sampleArchivedTags: Tag[] = sampleTags.filter((t) => t.archived);
+/** Archived tags: grouped under `g-brand-arch` (Figma Archived hub) + legacy ungrouped archived samples. */
+export const sampleArchivedTags: Tag[] = [
+  { id: "t-arch-coke", name: "Coke", groupId: "g-brand-arch", color: TAG_SWATCH_NEUTRAL, archived: true },
+  ...sampleTags.filter((t) => t.archived),
+];

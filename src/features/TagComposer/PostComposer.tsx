@@ -118,9 +118,16 @@ const PREVIEW_HEADER: Record<
 export interface PostComposerProps {
   /** Called when the user chooses “Manage tags” in the tag combobox (e.g. navigate to tag admin). */
   onManageTags?: () => void;
+  /**
+   * When false, hides the right-hand OwlyGPT assistant column and the OwlyGPT control in the header
+   * (prototype / parity with flows that omit AI chat).
+   */
+  showOwlyAssistant?: boolean;
+  /** When true, fills the parent height instead of `100vh` (nested prototype shell). */
+  embedded?: boolean;
 }
 
-export function PostComposer({ onManageTags }: PostComposerProps = {}) {
+export function PostComposer({ onManageTags, showOwlyAssistant = true, embedded = false }: PostComposerProps = {}) {
   const [groups, setGroups] = useState<ComposerTagGroup[]>(composerGroups);
   const [ungrouped, setUngrouped] = useState<ComposerTag[]>(ungroupedTags);
   const [selectedTags, setSelectedTags] = useState<ComposerTag[]>([]);
@@ -205,7 +212,8 @@ export function PostComposer({ onManageTags }: PostComposerProps = {}) {
     <div
       style={{
         display: "flex",
-        height: "100vh",
+        height: embedded ? "100%" : "100vh",
+        minHeight: embedded ? 0 : undefined,
         backgroundColor: "var(--hs-comp-badge-neutral-bg)",
         fontFamily: HS_FONT_FAMILY,
       }}
@@ -219,7 +227,7 @@ export function PostComposer({ onManageTags }: PostComposerProps = {}) {
         <header
           style={{
             height: 64,
-            backgroundColor: "var(--hs-color-fill-app)",
+            backgroundColor: "var(--hs-color-fill-base)",
             borderBottom: "1px solid var(--hs-color-border-subtle)",
             paddingLeft: 24,
             paddingRight: 24,
@@ -266,31 +274,32 @@ export function PostComposer({ onManageTags }: PostComposerProps = {}) {
 
           {/* Right side */}
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            {/* OwlyGPT button */}
-            <button
-              type="button"
-              onClick={() => showToast("OwlyGPT activated")}
-              style={{
-                height: 40,
-                paddingLeft: 12,
-                paddingRight: 12,
-                borderRadius: 8,
-                boxShadow: "inset 0 0 0 1px var(--hs-comp-button-outlined-border)",
-                backgroundColor: "transparent",
-                border: "none",
-                display: "flex",
-                alignItems: "center",
-                gap: 8,
-                cursor: "pointer",
-                fontFamily: HS_FONT_FAMILY,
-                fontSize: 14,
-                fontWeight: 700,
-                color: "var(--hs-color-text-base)",
-              }}
-            >
-              <IconSparkle />
-              OwlyGPT
-            </button>
+            {showOwlyAssistant && (
+              <button
+                type="button"
+                onClick={() => showToast("OwlyGPT activated")}
+                style={{
+                  height: 40,
+                  paddingLeft: 12,
+                  paddingRight: 12,
+                  borderRadius: 8,
+                  boxShadow: "inset 0 0 0 1px var(--hs-comp-button-outlined-border)",
+                  backgroundColor: "transparent",
+                  border: "none",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 8,
+                  cursor: "pointer",
+                  fontFamily: HS_FONT_FAMILY,
+                  fontSize: 14,
+                  fontWeight: 700,
+                  color: "var(--hs-color-text-base)",
+                }}
+              >
+                <IconSparkle />
+                OwlyGPT
+              </button>
+            )}
 
             {/* Close fullscreen */}
             <button
@@ -336,52 +345,39 @@ export function PostComposer({ onManageTags }: PostComposerProps = {}) {
 
         {/* ─── CONTENT AREA ─── */}
         <div style={{ flex: 1, display: "flex", overflow: "hidden" }}>
-          {/* Left panel (compose) */}
+          {/* Left panel (compose) — 806px = 726 content + 40 padding each side */}
           <div
             style={{
-              flex: 1,
+              flex: "0 0 806px",
               overflowY: "auto",
-              backgroundColor: "var(--hs-comp-badge-neutral-bg)",
+              backgroundColor: "var(--hs-color-fill-base)",
+              paddingLeft: 40,
+              paddingRight: 40,
+              paddingTop: 32,
+              paddingBottom: 32,
             }}
           >
-            <div
-              style={{
-                maxWidth: 726,
-                margin: "0 auto",
-                backgroundColor: "var(--hs-color-fill-app)",
-                borderRadius: 16,
-                paddingLeft: 40,
-                paddingRight: 40,
-                paddingTop: 32,
-                paddingBottom: 32,
-                minHeight: "100%",
-              }}
-            >
+            <div>
               {/* ── Campaign (optional) — matches product composer ── */}
               <div style={{ marginBottom: 24 }}>
-                <button
-                  type="button"
-                  onClick={() => showToast("Campaign picker")}
-                  style={{
-                    width: "100%",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                    minHeight: 48,
-                    paddingLeft: 16,
-                    paddingRight: 12,
-                    borderRadius: 8,
-                    border: "1px solid var(--hs-color-border-subtle)",
-                    backgroundColor: "var(--hs-color-fill-app)",
-                    cursor: "pointer",
-                    fontFamily: HS_FONT_FAMILY,
-                  }}
-                >
-                  <span style={{ fontSize: 16, fontWeight: 600, color: "var(--hs-color-text-subtle)" }}>
-                    Campaign (optional)
-                  </span>
-                  <IconChevronDown />
-                </button>
+                <div style={{ display: "flex", alignItems: "center", gap: 4, marginBottom: 8 }}>
+                  <span style={{ fontSize: 16, lineHeight: "24px", fontWeight: 600, color: "var(--hs-color-text-base)" }}>Campaign</span>
+                  <span style={{ fontSize: 16, lineHeight: "24px", fontWeight: 400, color: "var(--hs-color-text-subtle)" }}>(optional)</span>
+                </div>
+                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "space-between", height: 48, paddingLeft: 16, paddingRight: 12, borderRadius: 8, border: "1px solid var(--hs-color-border-subtle)", backgroundColor: "var(--hs-comp-input-bg)", boxSizing: "border-box" }}>
+                    <span style={{ fontSize: 16, lineHeight: "24px", fontWeight: 400, color: "var(--hs-color-text-base)" }}>Spring campaign</span>
+                    <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                      <button type="button" onClick={() => showToast("Campaign cleared")} style={{ border: "none", background: "none", cursor: "pointer", padding: 2, display: "flex", color: "var(--hs-color-text-muted)" }}>
+                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="9" fill="currentColor" fillOpacity="0.55" /><path d="M7 7l6 6M13 7l-6 6" stroke="white" strokeWidth="1.5" strokeLinecap="round" /></svg>
+                      </button>
+                      <IconChevronDown />
+                    </div>
+                  </div>
+                  <button type="button" onClick={() => showToast("Campaign manager")} style={{ border: "none", background: "none", cursor: "pointer", fontSize: 16, lineHeight: "24px", fontWeight: 700, color: "var(--hs-color-text-base)", whiteSpace: "nowrap", fontFamily: HS_FONT_FAMILY, padding: 0 }}>
+                    Manage campaigns
+                  </button>
+                </div>
               </div>
 
               {/* ── Publish to ── */}
@@ -427,8 +423,8 @@ export function PostComposer({ onManageTags }: PostComposerProps = {}) {
                     paddingRight: 12,
                     paddingTop: 6,
                     paddingBottom: 6,
-                    backgroundColor: "var(--hs-palette-neutrals-light-10)",
-                    boxShadow: "inset 0 0 0 1px var(--hs-palette-border-input)",
+                    backgroundColor: "var(--hs-comp-input-bg)",
+                    boxShadow: "inset 0 0 0 1px var(--hs-comp-input-border)",
                   }}
                 >
                   {publishAccounts.map((acct) => (
@@ -681,7 +677,7 @@ export function PostComposer({ onManageTags }: PostComposerProps = {}) {
                     borderRadius: 8,
                     border: "1px solid var(--hs-color-border-base)",
                     overflow: "hidden",
-                    backgroundColor: "var(--hs-color-overlay-inverse)",
+                    backgroundColor: "var(--hs-comp-input-bg)",
                   }}
                 >
                   {/* Textarea */}
@@ -782,39 +778,16 @@ export function PostComposer({ onManageTags }: PostComposerProps = {}) {
                       </button>
                     </div>
 
-                    <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-                      <span
-                        style={{
-                          fontSize: 16,
-                          lineHeight: "24px",
-                          fontWeight: 400,
-                          color: "var(--hs-color-text-body)",
-                        }}
-                      >
-                        {textContent.length}
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() => showToast("Owly Writer")}
-                        style={{
-                          display: "inline-flex",
-                          alignItems: "center",
-                          gap: 6,
-                          background: "none",
-                          border: "none",
-                          cursor: "pointer",
-                          fontFamily: HS_FONT_FAMILY,
-                          fontSize: 14,
-                          lineHeight: "20px",
-                          fontWeight: 700,
-                          color: "var(--hs-color-text-link)",
-                          padding: 0,
-                        }}
-                      >
-                        <IconSparkle />
-                        Enhance with Owly Writer AI
-                      </button>
-                    </div>
+                    <span
+                      style={{
+                        fontSize: 16,
+                        lineHeight: "24px",
+                        fontWeight: 400,
+                        color: "var(--hs-color-text-body)",
+                      }}
+                    >
+                      {textContent.length}
+                    </span>
                   </div>
 
                   {/* Media area */}
@@ -826,7 +799,6 @@ export function PostComposer({ onManageTags }: PostComposerProps = {}) {
                       paddingBottom: 12,
                       display: "flex",
                       alignItems: "center",
-                      justifyContent: "space-between",
                     }}
                   >
                     {/* Image upload button (tonal) */}
@@ -848,43 +820,6 @@ export function PostComposer({ onManageTags }: PostComposerProps = {}) {
                     >
                       <IconImage />
                     </button>
-
-                    <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-                      <button
-                        type="button"
-                        onClick={() => showToast("Open Canva")}
-                        aria-label="Open Canva"
-                        style={{
-                          cursor: "pointer",
-                          background: "none",
-                          border: "none",
-                          padding: 0,
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          color: "var(--hs-color-icon-base)",
-                        }}
-                      >
-                        <IconCanva />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => showToast("Adobe Express")}
-                        aria-label="Adobe Express"
-                        style={{
-                          cursor: "pointer",
-                          background: "none",
-                          border: "none",
-                          padding: 0,
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          color: "var(--hs-color-icon-base)",
-                        }}
-                      >
-                        <IconAdobe />
-                      </button>
-                    </div>
                   </div>
 
                   {/* First comment (Instagram) */}
@@ -924,7 +859,7 @@ export function PostComposer({ onManageTags }: PostComposerProps = {}) {
                           fontSize: 16,
                           lineHeight: "24px",
                           color: "var(--hs-color-text-base)",
-                          backgroundColor: "var(--hs-color-fill-app)",
+                          backgroundColor: "var(--hs-comp-input-bg)",
                           fontFamily: HS_FONT_FAMILY,
                         }}
                       />
@@ -1018,7 +953,7 @@ export function PostComposer({ onManageTags }: PostComposerProps = {}) {
                           fontSize: 16,
                           lineHeight: "24px",
                           color: "var(--hs-color-text-subtle)",
-                          backgroundColor: "color-mix(in srgb, var(--hs-color-fill-app) 90%, transparent)",
+                          backgroundColor: "var(--hs-comp-input-bg)",
                           fontFamily: HS_FONT_FAMILY,
                         }}
                       />
@@ -1027,54 +962,12 @@ export function PostComposer({ onManageTags }: PostComposerProps = {}) {
                 </div>
               </div>
 
-              {/* ── Location & request approval (product parity) ── */}
-              <div style={{ marginBottom: 24 }}>
-                <p
-                  style={{
-                    fontSize: 16,
-                    lineHeight: "24px",
-                    fontWeight: 600,
-                    color: "var(--hs-color-text-base)",
-                    margin: "0 0 8px",
-                  }}
-                >
-                  Add location
-                </p>
-                <InputSearch
-                  placeholder="Search for a location"
-                  aria-label="Add location"
-                  value={locationQuery}
-                  onChange={(e) => setLocationQuery(e.target.value)}
-                />
-                <div
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                    marginTop: 20,
-                    marginBottom: 12,
-                  }}
-                >
-                  <span style={{ fontSize: 16, fontWeight: 600, color: "var(--hs-color-text-base)" }}>
-                    Publish via mobile notification
-                  </span>
-                  <Switch
-                    checked={publishViaMobile}
-                    onChange={() => setPublishViaMobile((v) => !v)}
-                    aria-label="Publish via mobile notification"
-                  />
-                </div>
-                <Alert variant="info" title="Request approval">
-                  You don&apos;t have permission to approve this post in this workspace. Ask an admin to grant approval or
-                  submit for review.
-                </Alert>
-              </div>
-
               {/* ── Tag combobox ── */}
-              <div style={{ marginBottom: 24 }}>
+              <div data-annotate="composer-tag-field" style={{ marginBottom: 24 }}>
                 <TagCombobox
                   label="Tag"
                   required
+                  helperText={`Select at least 1 tag each from the required groups (${groups.filter(g => g.required).map(g => g.name).join(", ")})`}
                   groups={groups}
                   ungrouped={ungrouped}
                   selected={selectedTags}
@@ -1098,13 +991,13 @@ export function PostComposer({ onManageTags }: PostComposerProps = {}) {
             role="region"
             aria-label="Live preview"
             style={{
-              width: 400,
-              flexShrink: 0,
-              backgroundColor: "var(--hs-comp-badge-neutral-bg)",
+              flex: 1,
+              minWidth: 400,
+              backgroundColor: "var(--hs-color-fill-base)",
               borderLeft: "1px solid var(--hs-color-border-subtle)",
               overflowY: "auto",
-              paddingLeft: 20,
-              paddingRight: 20,
+              paddingLeft: 24,
+              paddingRight: 24,
               paddingTop: 24,
               paddingBottom: 24,
             }}
@@ -1129,7 +1022,7 @@ export function PostComposer({ onManageTags }: PostComposerProps = {}) {
                   margin: "0 auto",
                   borderRadius: 12,
                   overflow: "hidden",
-                  backgroundColor: "var(--hs-color-fill-app)",
+                  backgroundColor: "var(--hs-color-fill-base)",
                   border: "1px solid var(--hs-color-border-subtle)",
                   boxShadow: "var(--hs-comp-card-shadow-raised)",
                 }}
@@ -1202,7 +1095,7 @@ export function PostComposer({ onManageTags }: PostComposerProps = {}) {
                     padding: "12px 14px",
                     border: "none",
                     borderTop: "1px solid var(--hs-color-border-subtle)",
-                    background: "var(--hs-color-fill-app)",
+                    background: "var(--hs-color-fill-base)",
                     cursor: "pointer",
                     fontFamily: HS_FONT_FAMILY,
                     fontSize: 13,
@@ -1223,7 +1116,7 @@ export function PostComposer({ onManageTags }: PostComposerProps = {}) {
                     padding: "12px 14px",
                     border: "none",
                     borderTop: "1px solid var(--hs-color-border-subtle)",
-                    background: "var(--hs-color-fill-app)",
+                    background: "var(--hs-color-fill-base)",
                     cursor: "pointer",
                     fontFamily: HS_FONT_FAMILY,
                     fontSize: 13,
@@ -1238,7 +1131,7 @@ export function PostComposer({ onManageTags }: PostComposerProps = {}) {
               <>
                 <div
                   style={{
-                    backgroundColor: "var(--hs-color-fill-app)",
+                    backgroundColor: "var(--hs-color-fill-base)",
                     borderRadius: 12,
                     padding: 16,
                     border: "1px solid var(--hs-color-border-subtle)",
@@ -1352,39 +1245,6 @@ export function PostComposer({ onManageTags }: PostComposerProps = {}) {
                   </p>
                 )}
 
-                {/* Tags (synced) */}
-                {selectedTags.length > 0 && (
-                  <div
-                    style={{
-                      display: "flex",
-                      flexWrap: "wrap",
-                      gap: 6,
-                      marginTop: 10,
-                    }}
-                  >
-                    {selectedTags.map((t) => (
-                      <span
-                        key={t.id}
-                        style={{
-                          display: "inline-flex",
-                          alignItems: "center",
-                          height: 26,
-                          paddingLeft: 10,
-                          paddingRight: 10,
-                          borderRadius: 999,
-                          backgroundColor: "var(--hs-comp-tag-bg)",
-                          color: "var(--hs-color-text-brand)",
-                          fontSize: 14,
-                          lineHeight: "18px",
-                          fontWeight: 700,
-                        }}
-                      >
-                        {t.name}
-                      </span>
-                    ))}
-                  </div>
-                )}
-
                 {/* Thread preview */}
                 {threadExpanded && threadContent.trim() ? (
                   <div
@@ -1476,105 +1336,106 @@ export function PostComposer({ onManageTags }: PostComposerProps = {}) {
             )}
           </div>
 
-          {/* ═══ RIGHT — OwlyGPT Assistant (matches product sidebar) ═══ */}
-          <aside
-            aria-label="OwlyGPT Assistant"
-            style={{
-              width: 340,
-              flexShrink: 0,
-              backgroundColor: "var(--hs-color-fill-app)",
-              borderLeft: "1px solid var(--hs-color-border-subtle)",
-              overflowY: "auto",
-              paddingLeft: 20,
-              paddingRight: 20,
-              paddingTop: 24,
-              paddingBottom: 24,
-            }}
-          >
-            <h2
+          {showOwlyAssistant && (
+            <aside
+              aria-label="OwlyGPT Assistant"
               style={{
-                fontSize: 18,
-                lineHeight: "24px",
-                fontWeight: 700,
-                color: "var(--hs-color-text-base)",
-                margin: "0 0 4px",
+                width: 340,
+                flexShrink: 0,
+                backgroundColor: "var(--hs-color-fill-base)",
+                borderLeft: "1px solid var(--hs-color-border-subtle)",
+                overflowY: "auto",
+                paddingLeft: 20,
+                paddingRight: 20,
+                paddingTop: 24,
+                paddingBottom: 24,
               }}
             >
-              OwlyGPT Assistant
-            </h2>
-            <p
-              style={{
-                fontSize: 14,
-                lineHeight: "20px",
-                color: "var(--hs-color-text-subtle)",
-                margin: "0 0 20px",
-              }}
-            >
-              Proactive suggestions for reach, hashtags, and tone — same lane as the composer, not floating toasts.
-            </p>
-            {OWLY_SUGGESTIONS.map((s) => (
-              <CardSurface
-                key={s.id}
-                variant="flat"
-                padding="medium"
+              <h2
                 style={{
-                  marginBottom: 12,
-                  border: "1px solid var(--hs-color-border-subtle)",
+                  fontSize: 18,
+                  lineHeight: "24px",
+                  fontWeight: 700,
+                  color: "var(--hs-color-text-base)",
+                  margin: "0 0 4px",
                 }}
               >
-                <p
-                  style={{
-                    fontSize: 14,
-                    lineHeight: "20px",
-                    fontWeight: 600,
-                    color: "var(--hs-color-text-base)",
-                    margin: "0 0 8px",
-                  }}
-                >
-                  {s.title}
-                </p>
-                <p
-                  style={{
-                    fontSize: 13,
-                    lineHeight: "18px",
-                    color: "var(--hs-color-text-subtle)",
-                    margin: "0 0 12px",
-                  }}
-                >
-                  {s.body}
-                </p>
-                <Button
-                  type="button"
-                  variant="primary"
-                  className="!min-h-[36px] !py-1.5 !text-hs-button-small"
-                  onClick={() => showToast(`Optimize: ${s.title}`)}
-                >
-                  Optimize
-                </Button>
-              </CardSurface>
-            ))}
-            <div style={{ marginTop: 8 }}>
-              <Input
-                placeholder="Ask OwlyGPT a question"
-                value={owlyQuestion}
-                onChange={(e) => setOwlyQuestion(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    showToast(owlyQuestion.trim() ? `Owly: ${owlyQuestion}` : "Ask a question first");
-                    setOwlyQuestion("");
-                  }
+                OwlyGPT Assistant
+              </h2>
+              <p
+                style={{
+                  fontSize: 14,
+                  lineHeight: "20px",
+                  color: "var(--hs-color-text-subtle)",
+                  margin: "0 0 20px",
                 }}
-                aria-label="Ask OwlyGPT a question"
-              />
-            </div>
-          </aside>
+              >
+                Proactive suggestions for reach, hashtags, and tone — same lane as the composer, not floating toasts.
+              </p>
+              {OWLY_SUGGESTIONS.map((s) => (
+                <CardSurface
+                  key={s.id}
+                  variant="flat"
+                  padding="medium"
+                  style={{
+                    marginBottom: 12,
+                    border: "1px solid var(--hs-color-border-subtle)",
+                  }}
+                >
+                  <p
+                    style={{
+                      fontSize: 14,
+                      lineHeight: "20px",
+                      fontWeight: 600,
+                      color: "var(--hs-color-text-base)",
+                      margin: "0 0 8px",
+                    }}
+                  >
+                    {s.title}
+                  </p>
+                  <p
+                    style={{
+                      fontSize: 13,
+                      lineHeight: "18px",
+                      color: "var(--hs-color-text-subtle)",
+                      margin: "0 0 12px",
+                    }}
+                  >
+                    {s.body}
+                  </p>
+                  <Button
+                    type="button"
+                    variant="primary"
+                    className="!min-h-[36px] !py-1.5 !text-hs-button-small"
+                    onClick={() => showToast(`Optimize: ${s.title}`)}
+                  >
+                    Optimize
+                  </Button>
+                </CardSurface>
+              ))}
+              <div style={{ marginTop: 8 }}>
+                <Input
+                  placeholder="Ask OwlyGPT a question"
+                  value={owlyQuestion}
+                  onChange={(e) => setOwlyQuestion(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      showToast(owlyQuestion.trim() ? `Owly: ${owlyQuestion}` : "Ask a question first");
+                      setOwlyQuestion("");
+                    }
+                  }}
+                  aria-label="Ask OwlyGPT a question"
+                />
+              </div>
+            </aside>
+          )}
         </div>
 
         {/* ─── FOOTER ─── */}
         <footer
           style={{
             height: 64,
-            backgroundColor: "var(--hs-color-fill-app)",
+            backgroundColor: "var(--hs-color-fill-base)",
             borderTop: "1px solid var(--hs-color-border-subtle)",
             paddingLeft: 40,
             paddingRight: 40,
@@ -1587,26 +1448,6 @@ export function PostComposer({ onManageTags }: PostComposerProps = {}) {
             flexShrink: 0,
           }}
         >
-          {/* Manage campaigns */}
-          <button
-            type="button"
-            onClick={() => showToast("Campaign manager")}
-            style={{
-              fontSize: 16,
-              lineHeight: "24px",
-              fontWeight: 600,
-              color: "var(--hs-color-text-base)",
-              backgroundColor: "transparent",
-              border: "none",
-              cursor: "pointer",
-              fontFamily: HS_FONT_FAMILY,
-              padding: "8px 12px",
-              borderRadius: 8,
-            }}
-          >
-            Manage campaigns
-          </button>
-
           {/* Save as draft */}
           <button
             type="button"
@@ -1718,7 +1559,7 @@ export function PostComposer({ onManageTags }: PostComposerProps = {}) {
                   marginBottom: 4,
                   minWidth: 200,
                   borderRadius: 8,
-                  backgroundColor: "var(--hs-color-fill-app)",
+                  backgroundColor: "var(--hs-color-fill-base)",
                   boxShadow: "var(--hs-shadow-overlay-bottom)",
                   border: "1px solid var(--hs-color-border-subtle)",
                   overflow: "hidden",
@@ -1738,7 +1579,7 @@ export function PostComposer({ onManageTags }: PostComposerProps = {}) {
                     textAlign: "left",
                     padding: "12px 16px",
                     border: "none",
-                    background: "var(--hs-color-fill-app)",
+                    background: "transparent",
                     cursor: "pointer",
                     fontSize: 14,
                     fontWeight: 600,
@@ -1761,7 +1602,7 @@ export function PostComposer({ onManageTags }: PostComposerProps = {}) {
                     textAlign: "left",
                     padding: "12px 16px",
                     border: "none",
-                    background: "var(--hs-color-fill-app)",
+                    background: "transparent",
                     cursor: "pointer",
                     fontSize: 14,
                     fontWeight: 600,

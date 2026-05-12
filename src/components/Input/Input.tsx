@@ -46,9 +46,8 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
             "flex w-full items-center rounded-hs-input bg-hs-comp-input-bg transition-colors",
             h,
             hasError
-              ? "shadow-[inset_0_0_0_2px_var(--hs-comp-input-border-error)]"
-              : "shadow-[inset_0_0_0_1px_var(--hs-comp-input-border)] hover:shadow-[inset_0_0_0_1px_var(--hs-comp-input-border-hover)]",
-            "focus-within:shadow-[inset_0_0_0_2px_var(--hs-comp-input-border-focus)]",
+              ? "shadow-[inset_0_0_0_2px_var(--hs-comp-input-border-error)] focus-within:shadow-[inset_0_0_0_2px_var(--hs-comp-input-border-error)]"
+              : "shadow-[inset_0_0_0_1px_var(--hs-comp-input-border)] hover:shadow-[inset_0_0_0_1px_var(--hs-comp-input-border-hover)] focus-within:shadow-[inset_0_0_0_2px_var(--hs-comp-input-border-focus)]",
             disabled && "opacity-40 pointer-events-none"
           )}
         >

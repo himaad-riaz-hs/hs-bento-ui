@@ -92,12 +92,13 @@
     --hs-palette-neutrals-light-10: #fcfcfb;
     --hs-palette-border-input: #7c797a;
 
-    /* Tag color swatches (picker + demos — change once, updates everywhere) */
-    --hs-palette-tag-blue: #4c9aff;
-    --hs-palette-tag-green: #57d9a3;
-    --hs-palette-tag-purple: #b8acf6;
-    --hs-palette-tag-yellow: #ffc400;
-    --hs-palette-tag-pink: #ff8f73;
+    /* Tag color swatches — NES nested-table dots + Bento pastels (picker + demos) */
+    /* dot-2.svg mint, dot-1.svg rose, dot.svg cream, nested-dot-indicator.svg → fill-disabled */
+    --hs-palette-tag-blue: #bfe2e0;
+    --hs-palette-tag-green: #f8d6df;
+    --hs-palette-tag-purple: #feeed2;
+    --hs-palette-tag-yellow: var(--hs-color-fill-disabled);
+    --hs-palette-tag-pink: var(--hs-comp-badge-discovery-bg);
 
     /* ─── Component: Button (HS-Bento / Figma gallery — single default size, hs-sys/text/button-small) ─── */
     --hs-comp-button-filled-bg: #012b3a;
