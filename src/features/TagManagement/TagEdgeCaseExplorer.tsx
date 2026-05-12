@@ -42,14 +42,14 @@ export type EdgeCaseScenario = {
 };
 
 const CATEGORY_META: Record<EdgeCaseCategory, { label: string; accent: string; tint: string }> = {
-  data: { label: "Data", accent: "#64748b", tint: "rgba(100, 116, 139, 0.14)" },
-  failure: { label: "Failure", accent: "#dc2626", tint: "rgba(220, 38, 38, 0.12)" },
-  archive: { label: "Archive", accent: "#ea580c", tint: "rgba(234, 88, 12, 0.14)" },
-  creation: { label: "Creation", accent: "#059669", tint: "rgba(5, 150, 105, 0.14)" },
-  delete: { label: "Delete", accent: "#b91c1c", tint: "rgba(185, 28, 28, 0.14)" },
-  search: { label: "Search", accent: "#7c3aed", tint: "rgba(124, 58, 237, 0.14)" },
-  bulk: { label: "Bulk", accent: "#0891b2", tint: "rgba(8, 145, 178, 0.14)" },
-  composer: { label: "Composer", accent: "#2563eb", tint: "rgba(37, 99, 235, 0.14)" },
+  data:     { label: "Data",     accent: "var(--hs-color-text-muted)",    tint: "var(--hs-comp-badge-neutral-bg)" },
+  failure:  { label: "Failure",  accent: "var(--hs-color-fill-critical)", tint: "var(--hs-comp-tag-surface-critical)" },
+  archive:  { label: "Archive",  accent: "var(--hs-color-fill-warning)",  tint: "var(--hs-comp-tag-surface-warning)" },
+  creation: { label: "Creation", accent: "var(--hs-color-fill-positive)", tint: "var(--hs-comp-tag-surface-positive)" },
+  delete:   { label: "Delete",   accent: "var(--hs-color-text-critical)", tint: "var(--hs-comp-tag-surface-critical)" },
+  search:   { label: "Search",   accent: "var(--hs-color-fill-discovery)", tint: "var(--hs-comp-tag-surface-discovery)" },
+  bulk:     { label: "Bulk",     accent: "var(--hs-color-fill-info)",     tint: "var(--hs-comp-tag-surface-info)" },
+  composer: { label: "Composer", accent: "var(--hs-color-text-link)",     tint: "var(--hs-comp-alert-info-bg)" },
 };
 
 const CATEGORY_ORDER: EdgeCaseCategory[] = [

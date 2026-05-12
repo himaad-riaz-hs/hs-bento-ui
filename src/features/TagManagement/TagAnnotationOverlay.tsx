@@ -65,7 +65,7 @@ export function TagAnnotationOverlay({
     variant === "figma-updates"
       ? "var(--hs-color-text-discovery)"
       : variant === "call-feedback"
-        ? "#f59e0b"
+        ? "var(--hs-color-fill-warning)"
         : "var(--hs-color-text-link)";
   const dockTitle =
     variant === "figma-updates"
