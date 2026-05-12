@@ -203,7 +203,7 @@ export function CreateGroupModal({
                 disabled={submitDisabled}
                 trailingIcon={submitting ? <SubmitSpinner /> : undefined}
               >
-                {submitting ? (editMode ? "Saving…" : "Creating…") : editMode ? "Save changes" : "Create group"}
+                {submitting ? (editMode ? "Saving…" : "Creating…") : editMode ? "Save changes" : "Create groups"}
               </Button>
             </div>
           </div>

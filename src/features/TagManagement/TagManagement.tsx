@@ -1864,7 +1864,7 @@ export function TagManagement({
                 Create tags
               </Button>
               <Button variant="outlined" onClick={() => setShowCreateGroup(true)} leadingIcon={<PlusSmallIcon />}>
-                Create group
+                Create groups
               </Button>
             </div>
           )}
@@ -1903,7 +1903,7 @@ export function TagManagement({
               </p>
               <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                 <Button variant="ghost" onClick={() => setShowCreateTag(true)}>+ Create tags</Button>
-                <Button variant="outlined" onClick={() => setShowCreateGroup(true)}>+ Create group</Button>
+                <Button variant="outlined" onClick={() => setShowCreateGroup(true)}>+ Create groups</Button>
               </div>
             </div>
           )}
@@ -1961,7 +1961,7 @@ export function TagManagement({
                   </p>
                   <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                     <Button variant="ghost" onClick={() => setShowCreateTag(true)}>+ Create tags</Button>
-                    <Button variant="outlined" onClick={() => setShowCreateGroup(true)}>+ Create group</Button>
+                    <Button variant="outlined" onClick={() => setShowCreateGroup(true)}>+ Create groups</Button>
                   </div>
                 </div>
               )}

@@ -359,12 +359,18 @@ export function TagCombobox({
           {/* Ungrouped tags — show section header when items exist */}
           {filteredUngrouped.length > 0 && (
             <>
-              <GroupRow
-                name="Ungrouped tags"
-                expanded={expandedGroups.has("ungrouped")}
-                onToggle={() => toggleGroup("ungrouped")}
-                fontFamily={HS_FONT_FAMILY}
-              />
+              {(() => {
+                const selectedUngroupedCount = filteredUngrouped.filter(t => selectedIds.has(t.id)).length;
+                const ungroupedDisplayName = selectedUngroupedCount > 0 ? `Ungrouped tags (${selectedUngroupedCount})` : "Ungrouped tags";
+                return (
+                  <GroupRow
+                    name={ungroupedDisplayName}
+                    expanded={expandedGroups.has("ungrouped")}
+                    onToggle={() => toggleGroup("ungrouped")}
+                    fontFamily={HS_FONT_FAMILY}
+                  />
+                );
+              })()}
               {expandedGroups.has("ungrouped") &&
                 filteredUngrouped.map((t) => (
                   <TagRow key={t.id} tag={t} selected={selectedIds.has(t.id)} onToggle={() => toggle(t)} onFavorite={onFavorite} onUnfavorite={onUnfavorite} indent fontFamily={HS_FONT_FAMILY} />
@@ -436,8 +442,8 @@ function CheckboxIcon({ state }: { state: "none" | "some" | "all" }) {
           width: 18,
           height: 18,
           borderRadius: 4,
-          border: `2px solid ${active ? "var(--hs-comp-button-filled-bg)" : "var(--hs-color-border-base)"}`,
-          background: active ? "var(--hs-comp-button-filled-bg)" : "var(--hs-comp-input-bg)",
+          border: `2px solid ${active ? "var(--hs-comp-combobox-checkbox-selected-fill)" : "var(--hs-color-border-base)"}`,
+          background: active ? "var(--hs-comp-combobox-checkbox-selected-fill)" : "var(--hs-comp-input-bg)",
           display: "block",
           transition: "background 120ms, border-color 120ms",
         }}

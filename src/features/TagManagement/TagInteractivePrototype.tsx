@@ -119,6 +119,20 @@ export function TagInteractivePrototype({
           gap: 12,
         }}
       >
+        {/* App label */}
+        <span
+          style={{
+            fontSize: 13,
+            fontWeight: 700,
+            fontFamily: HS_FONT_FAMILY,
+            color: "var(--hs-color-text-base)",
+            letterSpacing: "0.01em",
+            flexShrink: 0,
+          }}
+        >
+          HStagging
+        </span>
+
         {/* Surface toggle */}
         <div
           style={{
